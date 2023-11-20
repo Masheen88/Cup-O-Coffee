@@ -1,0 +1,4 @@
+# My default .gitignore 
+*.log 
+/build/ 
+node_modules/ 
