@@ -1,0 +1,176 @@
+<h3>Office Hours &amp; Live Coding Calendar</h3>
+<div id="lms-events-calendar" style="max-width: 100%; overflow: hidden">
+  <object
+    type="text/html"
+    data="https://tools.promineotech.com:3006"
+    style="width: 100%; height: 600px; border: none"
+  >
+    <p>Your browser does not support this object.</p>
+  </object>
+</div>
+
+<script>
+  async function loadCSS(url) {
+    return new Promise((resolve, reject) => {
+      var link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.type = "text/css";
+      link.href = url;
+      link.onload = () => resolve();
+      link.onerror = () => reject("CSS failed to load");
+      document.head.appendChild(link);
+    });
+  }
+
+  function getCookie(name) {
+    let cookieArray = document.cookie.split("; ");
+    let cookie = cookieArray.find((row) => row.startsWith(name + "="));
+    return cookie ? cookie.split("=")[1] : null;
+  }
+
+  function setCookie(name, value, days) {
+    var expires = "";
+    if (days) {
+      var date = new Date();
+      date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+      expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "") + expires + "; path=/";
+  }
+
+  function deleteCookie(name) {
+    document.cookie = name + "=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+  }
+
+  function createTutorialIcon() {
+    var tutorialIcon = document.createElement("i");
+    tutorialIcon.className = "nav-link icon fa fa-graduation-cap fa-fw"; // Replace with your icon's class
+    tutorialIcon.style.cursor = "pointer";
+    tutorialIcon.title = "Restart Tutorial";
+
+    tutorialIcon.onclick = function () {
+      setCookie("walkthroughCompleted", "false", 1); // Set cookie value to 'false'
+      initTutorial();
+    };
+
+    var navbar = document.getElementById("usernavigation");
+    if (navbar) {
+      //   navbar.appendChild(tutorialIcon);
+      //   prepend
+      navbar.insertBefore(tutorialIcon, navbar.childNodes[0]);
+    } else {
+      console.error("Navbar element not found.");
+    }
+  }
+
+  async function initTutorial() {
+    try {
+      await loadCSS(
+        "https:\/\/cdn.jsdelivr.net\/npm\/driver.js@1.0.1\/dist\/driver.css"
+      );
+      console.log("CSS loaded successfully.");
+
+      /*
+    Write CSS code:
+    button.driver-popover-prev-btn, button.driver-popover-next-btn {
+    color: #fff;
+    background-color: #0f6cbf;
+    border-color: #0f6cbf;
+}
+    */
+      let css = `
+        button.driver-popover-prev-btn, button.driver-popover-next-btn { 
+            color: #fff;
+            background-color: #0f6cbf;
+            border-color: #0f6cbf;
+        }
+
+        button.driver-popover-prev-btn:hover,
+        button.driver-popover-next-btn:hover { 
+            background-color: #000000ad;
+            transition: 0.5s; 
+        }
+
+        button.driver-popover-close-btn {
+        border: 1px solid red;
+        color: red;
+        border-radius: 50%;
+        margin: 3px;
+}
+      `;
+      let style = document.createElement("style");
+      style.type = "text/css";
+      style.appendChild(document.createTextNode(css));
+      document.head.appendChild(style);
+
+      const cookieValue = getCookie("walkthroughCompleted");
+      if (cookieValue !== "true") {
+        console.log("Starting the tutorial");
+
+        const driver = window.driver.js.driver;
+
+        const driverObj = driver({
+          showProgress: true,
+          steps: [
+            {
+              element: ".nav-link.active",
+              popover: {
+                title: "Step 1. Page Title",
+                description: "Displays the page you are currently on.",
+                side: "right",
+                align: "end",
+              },
+            },
+            {
+              element: "#lms-events-calendar",
+              popover: {
+                title: "Step 2. Events Calendar",
+                description:
+                  "Displays upcoming events such as Office Hours, Living Coding, and Workshops.",
+                side: "bottom",
+                align: "start",
+              },
+            },
+            {
+              element: "#no-element",
+              popover: {
+                title: "Step 3. Tutorial Completed",
+                description:
+                  "This concludes the walkthrough for your LMS Dashboard.",
+                side: "bottom",
+                align: "start",
+              },
+              onNext: function () {
+                document.cookie =
+                  "walkthroughCompleted=true; path=/; max-age=86400";
+              },
+            },
+            // Define your steps here
+          ],
+          onDestroyStarted: () => {
+            if (
+              !driverObj.hasNextStep() ||
+              confirm("Are you sure you want to exit the tutorial?")
+            ) {
+              setCookie("walkthroughCompleted", "true", 1); // Set cookie value to 'true' when tutorial ends
+              driverObj.destroy();
+            }
+          },
+        });
+
+        driverObj.drive();
+      } else {
+        console.log("Tutorial skipped as it has already been completed.");
+      }
+    } catch (e) {
+      console.error("Error in initializing tutorial: ", e);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    createTutorialIcon();
+    initTutorial();
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
